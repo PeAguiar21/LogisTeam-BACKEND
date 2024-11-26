@@ -1,7 +1,9 @@
 # API de Estoque de Produtos
 
-Esta API foi criada para gerenciar o estoque de produtos, fornecedores e inventário. O backend foi desenvolvido utilizando **Node.js** e **Express** e expõe endpoints REST para interagir com o banco de dados de produtos e fornecedores.
+Esta API foi criada para gerenciar o cadastro de produtos, fornecedores e gerenciar inventário. O backend foi desenvolvido utilizando **Node.js** e **Express** e expõe endpoints REST para interagir com o banco de dados de produtos e fornecedores.
 Ela foi implementada principalmente para integrar como a aplicação o frontend que está no repositório: https://github.com/PeAguiar21/LogisTeam
+
+Nome dos membros da equipe: Pedro Henryque Aguiar da Silva RA: 202051806321
 
 ## Tecnologias Utilizadas
 
