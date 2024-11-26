@@ -4,7 +4,7 @@ const db = new sqlite3.Database('./db/database.sqlite');
 db.serialize(() => {
     db.run(`
         CREATE TABLE IF NOT EXISTS fornecedores (
-            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            id INTEGER PRIMARY KEY,
             nome TEXT NOT NULL,
             cpf_cnpj TEXT NOT NULL,
             dataCadastro TEXT DEFAULT (date('now')),
@@ -14,7 +14,7 @@ db.serialize(() => {
 
     db.run(`
         CREATE TABLE IF NOT EXISTS Produtos (
-            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            id INTEGER PRIMARY KEY,
             nome TEXT NOT NULL,
             codigoDeBarras TEXT NOT NULL,
             preco REAL NOT NULL,
@@ -26,7 +26,7 @@ db.serialize(() => {
 
     db.run(`
         CREATE TABLE IF NOT EXISTS inventario (
-            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            id INTEGER PRIMARY KEY,
             produtoNome TEXT,
             fornecedorNome TEXT,
             quantity INTEGER NOT NULL,

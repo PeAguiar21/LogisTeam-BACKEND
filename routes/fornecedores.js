@@ -4,15 +4,15 @@ const sqlite3 = require('sqlite3').verbose();
 const db = new sqlite3.Database('./db/database.sqlite');
 
 router.post('/', (req, res) => {
-    const { nome, cpf_cnpj, contato } = req.body;
+    const { id, nome, cpf_cnpj, dataCadastro, contato } = req.body;
     db.run(
-        `INSERT INTO fornecedores (nome, cpf_cnpj, contato) VALUES (?, ?, ?)`,
-        [nome, cpf_cnpj, contato],
+        `INSERT INTO fornecedores (id, nome, cpf_cnpj, dataCadastro,contato) VALUES (?, ?, ? ,?, ?)`,
+        [id, nome, cpf_cnpj, dataCadastro,contato],
         function (err) {
             if (err) {
                 return res.status(500).json({ error: err.message });
             }
-            res.status(201).json({ id: this.lastID, nome, cpf_cnpj, contato });
+            res.status(201).json({ id, nome, cpf_cnpj, dataCadastro,contato });
         }
     );
 });
@@ -26,7 +26,7 @@ router.get('/', (req, res) => {
     });
 });
 
-router.get('/:id', (req, res) => {
+router.get('/getFornecedor/:id', (req, res) => {
     const { id } = req.params;
     db.get(`SELECT * FROM fornecedores WHERE id = ?`, [id], (err, row) => {
         if (err) {
@@ -55,6 +55,22 @@ router.put('/:id', (req, res) => {
             res.status(200).json({ message: 'Fornecedor atualizado com sucesso' });
         }
     );
+});
+
+router.get('/getUltimoRegistro', (req, res) => {
+    const db = new sqlite3.Database('./db/database.sqlite');
+    db.get('SELECT id FROM fornecedores ORDER BY id DESC LIMIT 1', (err, row) => {
+        db.close();
+        if (err) {
+            return res.status(500).json({ message: 'Erro interno do servidor' });
+        }
+
+        if (row) {
+            return res.json({ ultimoCodigo: row.id + 1 });
+        } else {
+            return res.json({ ultimoCodigo: 1 });
+        }
+    });
 });
 
 router.delete('/:id', (req, res) => {

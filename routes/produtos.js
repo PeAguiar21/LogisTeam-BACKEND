@@ -1,16 +1,17 @@
 const express = require('express');
 const sqlite3 = require('sqlite3').verbose();
 const router = express.Router();
-const db = new sqlite3.Database('./db/database.sqlite');
 
 router.post('/', (req, res) => {
-    const { id, nome, codigoDeBarras, preco, categoria, quantidade, descricaoTecnica } = req.body;
+    const { id, nome, codigo, preco, categoria, quantidade, descricao } = req.body;
 
+    const db = new sqlite3.Database('./db/database.sqlite');
     db.run(
         `INSERT INTO Produtos (id, nome, codigoDeBarras, preco, categoria, quantidade, descricaoTecnica) 
         VALUES (?, ?, ?, ?, ?, ?, ?)`,
-        [id, nome, codigoDeBarras, preco, categoria, quantidade || 0, descricaoTecnica],
+        [id, nome, codigo, preco, categoria, quantidade || 0, descricao],
         function (err) {
+            db.close();
             if (err) {
                 if (err.message.includes('UNIQUE constraint failed')) {
                     return res.status(400).json({ error: 'ID já existe. Forneça um ID único.' });
@@ -20,18 +21,20 @@ router.post('/', (req, res) => {
             res.status(201).json({
                 id,
                 nome,
-                codigoDeBarras,
+                codigo,
                 preco,
                 categoria,
                 quantidade,
-                descricaoTecnica,
+                descricao,
             });
         }
     );
 });
 
 router.get('/', (req, res) => {
+    const db = new sqlite3.Database('./db/database.sqlite');
     db.all(`SELECT * FROM Produtos`, [], (err, rows) => {
+        db.close(); 
         if (err) {
             return res.status(500).json({ error: err.message });
         }
@@ -39,9 +42,11 @@ router.get('/', (req, res) => {
     });
 });
 
-router.get('/:id', (req, res) => {
+router.get('/getProduto/:id', (req, res) => {
     const { id } = req.params;
+    const db = new sqlite3.Database('./db/database.sqlite');
     db.get(`SELECT * FROM Produtos WHERE id = ?`, [id], (err, row) => {
+        db.close();
         if (err) {
             return res.status(500).json({ error: err.message });
         }
@@ -52,12 +57,14 @@ router.get('/:id', (req, res) => {
     });
 });
 
-router.get('/ultimo', (req, res) => {
-    db.get('SELECT id FROM Produtos ORDER BY id DESC LIMIT 1', [], (err, row) => {
+router.get('/getUltimoRegistro', (req, res) => {
+    const db = new sqlite3.Database('./db/database.sqlite');
+    db.get('SELECT id FROM Produtos ORDER BY id DESC LIMIT 1', (err, row) => {
+        db.close();
         if (err) {
-            console.error('Erro ao buscar o último produto:', err);
             return res.status(500).json({ message: 'Erro interno do servidor' });
         }
+
         if (row) {
             return res.json({ ultimoCodigo: row.id + 1 });
         } else {
@@ -68,13 +75,15 @@ router.get('/ultimo', (req, res) => {
 
 router.put('/:id', (req, res) => {
     const { id } = req.params;
-    const { nome, codigoDeBarras, preco, categoria, quantidade, descricaoTecnica } = req.body;
+    const { nome, codigo, preco, categoria, descricao } = req.body;
 
+    const db = new sqlite3.Database('./db/database.sqlite');
     db.run(
-        `UPDATE Produtos SET nome = ?, codigoDeBarras = ?, preco = ?, categoria = ?, quantidade = ?, descricaoTecnica = ? 
+        `UPDATE Produtos SET nome = ?, codigoDeBarras = ?, preco = ?, categoria = ?, descricaoTecnica = ? 
         WHERE id = ?`,
-        [nome, codigoDeBarras, preco, categoria, quantidade, descricaoTecnica, id],
+        [nome, codigo, preco, categoria, descricao, id],
         function (err) {
+            db.close();
             if (err) {
                 return res.status(500).json({ error: err.message });
             }
@@ -89,7 +98,9 @@ router.put('/:id', (req, res) => {
 router.delete('/:id', (req, res) => {
     const { id } = req.params;
 
+    const db = new sqlite3.Database('./db/database.sqlite');
     db.run(`DELETE FROM Produtos WHERE id = ?`, [id], function (err) {
+        db.close();
         if (err) {
             return res.status(500).json({ error: err.message });
         }
