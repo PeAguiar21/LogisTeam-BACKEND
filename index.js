@@ -5,7 +5,7 @@ const inventarioRoutes = require('./routes/inventario');
 const produtosRoutes = require('./routes/produtos'); 
 
 const app = express();
-const PORT = 3322;
+const PORT = process.env.PORT || 3322;
 
 app.use(cors());
 app.use(express.json());
