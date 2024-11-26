@@ -4,15 +4,39 @@ const router = express.Router();
 const db = new sqlite3.Database('./db/database.sqlite')
 
 router.post('/', (req, res) => {
-    const { produtoNome, fornecedorNome, quantity, tipo } = req.body;
+    const { id, produtoNome, fornecedorNome, quantidade, tipo, dataCadastro, novaQuantidade } = req.body;
+    if (novaQuantidade === undefined || novaQuantidade === null) {
+        return res.status(400).json({ message: 'novaQuantidade é obrigatória!' });
+    }
     db.run(
-        `INSERT INTO inventario (produtoNome, fornecedorNome, quantity, tipo) VALUES (?, ?, ?, ?)`,
-        [produtoNome, fornecedorNome, quantity, tipo],
+        `INSERT INTO inventario (id, produtoNome, fornecedorNome, quantidade, tipo, dataCadastro) VALUES (? ,?, ?, ?, ?, ?)`,
+        [id, produtoNome, fornecedorNome, quantidade, tipo, dataCadastro],
         function (err) {
             if (err) {
                 return res.status(500).json({ error: err.message });
             }
-            res.status(201).json({ id: this.lastID, produtoNome, fornecedorNome, quantity, tipo });
+            db.run(
+                `UPDATE Produtos SET quantidade = ? WHERE nome = ?`,
+                [novaQuantidade, produtoNome],
+                function (err) {
+                    if (err) {
+                        return res.status(500).json({ error: 'Erro ao atualizar o estoque do produto' });
+                    }
+                    if (this.changes === 0) {
+                        return res.status(404).json({ message: 'Produto não encontrado para atualização' });
+                    }
+
+                    res.status(201).json({
+                        id: id,
+                        produtoNome,
+                        fornecedorNome,
+                        quantidade,
+                        tipo,
+                        dataCadastro,
+                        novaQuantidade,
+                    });
+                }
+            );
         }
     );
 });
@@ -26,7 +50,7 @@ router.get('/', (req, res) => {
     });
 });
 
-router.get('/:id', (req, res) => {
+router.get('/getEstoque/:id', (req, res) => {
     const { id } = req.params;
     db.get(`SELECT * FROM inventario WHERE id = ?`, [id], (err, row) => {
         if (err) {
@@ -39,35 +63,42 @@ router.get('/:id', (req, res) => {
     });
 });
 
-router.put('/:id', (req, res) => {
+router.get('/getUltimoRegistro', (req, res) => {
+    const db = new sqlite3.Database('./db/database.sqlite');
+    db.get('SELECT id FROM inventario ORDER BY id DESC LIMIT 1', (err, row) => {
+        db.close();
+        if (err) {
+            return res.status(500).json({ message: 'Erro interno do servidor' });
+        }
+
+        if (row) {
+            return res.json({ ultimoCodigo: row.id + 1 });
+        } else {
+            return res.json({ ultimoCodigo: 1 });
+        }
+    });
+});
+
+router.put('/atualizaEstoqueProduto/:id', (req, res) => {
     const { id } = req.params;
-    const { produtoNome, fornecedorNome, quantity, tipo } = req.body;
+    const { quantidade } = req.body;
+
+    const db = new sqlite3.Database('./db/database.sqlite');
     db.run(
-        `UPDATE inventario SET produtoNome = ?, fornecedorNome = ?, quantity = ?, tipo = ? WHERE id = ?`,
-        [produtoNome, fornecedorNome, quantity, tipo, id],
+        `UPDATE Produtos SET quantidade = ?
+        WHERE id = ?`,
+        [quantidade, id],
         function (err) {
+            db.close();
             if (err) {
                 return res.status(500).json({ error: err.message });
             }
             if (this.changes === 0) {
-                return res.status(404).json({ message: 'Inventário não encontrado' });
+                return res.status(404).json({ message: 'Produto não encontrado' });
             }
-            res.status(200).json({ message: 'Inventário atualizado com sucesso' });
+            res.status(200).json({ message: 'Produto atualizado com sucesso' });
         }
     );
-});
-
-router.delete('/:id', (req, res) => {
-    const { id } = req.params;
-    db.run(`DELETE FROM inventario WHERE id = ?`, [id], function (err) {
-        if (err) {
-            return res.status(500).json({ error: err.message });
-        }
-        if (this.changes === 0) {
-            return res.status(404).json({ message: 'Inventário não encontrado' });
-        }
-        res.status(200).json({ message: 'Inventário deletado com sucesso' });
-    });
 });
 
 module.exports = router;

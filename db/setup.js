@@ -29,8 +29,9 @@ db.serialize(() => {
             id INTEGER PRIMARY KEY,
             produtoNome TEXT,
             fornecedorNome TEXT,
-            quantity INTEGER NOT NULL,
-            tipo INTEGER
+            quantidade INTEGER NOT NULL,
+            tipo INTEGER,
+            dataCadastro TEXT DEFAULT (date('now'))
         );
     `);
 
