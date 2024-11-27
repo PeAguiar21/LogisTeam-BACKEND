@@ -158,12 +158,13 @@ O projeto está organizado da seguinte forma:
   Atualiza a quantidade de um produto no inventário.  
   **Body (JSON):**
   ```json
+  // No campo tipo 1 é igual a entrada e 2 igual a saida
   {
     "id": 1,
     "produtoNome": "Produto X",
     "fornecedorNome": "Fornecedor X",
     "quantidade": 2,
-    "tipo": 1 //1 igual a entrada e 2 igual a saida
+    "tipo": 1 
     "dataCadastro": "2024-08-21",
     "novaQuantidade": 3,
   }
